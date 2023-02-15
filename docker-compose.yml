@@ -7,3 +7,10 @@ services:
       - ./:/app:delegated
     ports:
       - '8000:80'
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14
+    ports:
+      - '8432:5432'
