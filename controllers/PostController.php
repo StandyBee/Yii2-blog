@@ -86,7 +86,7 @@ class PostController extends Controller
             $model->created_at = date('Y-m-d H:i:s');
             $model->updated_at = date('Y-m-d H:i:s');
 
-            if ($model->save()) {
+            if ($model->validate() && $model->save()) {
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {

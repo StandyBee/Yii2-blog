@@ -6,26 +6,33 @@ namespace functional;
 use app\models\Post;
 use app\fixtures\PostFixture;
 use \FunctionalTester;
+use function PHPUnit\Framework\identicalTo;
 
 class PostCest
 {
-    // tests
-    public function visitPostIndex(FunctionalTester $I): void
+    public function _fixtures(): array
     {
-        $I->haveFixtures([
-            'posts' => [
-                'class' => PostFixture::class,
-                'dataFile' => codecept_data_dir('posts.php'),
-            ],
-        ]);
-
-        $I->amOnRoute('post/index');
-        $I->seeResponseCodeIsSuccessful();
-        $I->see('Posts', 'h1');
-        $I->see('Test title');
+        return ['posts' => [
+            'class' => PostFixture::class,
+            'dataFile' => codecept_data_dir('posts.php'),
+        ],
+        ];
     }
 
-    public function createPostFromIndexPage(FunctionalTester $I):void
+    public function visitPostIndex(FunctionalTester $I): void
+    {
+        $I->amOnRoute('post/index');
+
+        $I->seeResponseCodeIsSuccessful();
+        $I->see('Posts', 'h1');
+
+        $posts = $I->grabFixture('posts');
+        foreach ($posts as $post) {
+            $I->see($post['title']);
+        }
+    }
+
+    public function createPostFromIndexPage(FunctionalTester $I): void
     {
         $I->amOnRoute('post/index');
 
@@ -43,7 +50,7 @@ class PostCest
         ]);
     }
 
-    public function createPost(FunctionalTester $I):void
+    public function createPost(FunctionalTester $I): void
     {
         $I->amOnRoute('post/create');
 
@@ -60,5 +67,52 @@ class PostCest
         ]);
     }
 
+    public function updatePost(FunctionalTester $I): void
+    {
 
+        $postId = 20000;
+        $post = $I->grabFixture('posts', $postId)->attributes;
+
+        $I->amOnRoute('post/update', ['id' => $postId]);
+
+        $I->submitForm('form', [
+            'Post[title]' => 'updated title',
+        ]);
+
+        $I->seeResponseCodeIsSuccessful();
+
+        $I->seeRecord(Post::class, [
+            'id' => $postId,
+            'title' => 'updated title',
+        ]);
+    }
+
+    public function visitUpdatePost(FunctionalTester $I): void
+    {
+
+        $postId = 20000;
+
+        $I->amOnRoute('post/update', ['id' => $postId]);
+
+        $I->seeResponseCodeIsSuccessful();
+
+        $post = $I->grabFixture('posts', $postId);
+
+        $I->seeInField('Post[title]',$post->title);
+        $I->seeInField('Post[content]',$post->content);
+    }
+
+    public function deletePost(FunctionalTester $I): void
+    {
+        //TODO: delete test
+    }
+
+    public function createPostWithInvalidValues(FunctionalTester  $I): void
+    {
+        $I->amOnRoute('post/create');
+
+        $I->submitForm('form', []);
+
+        $I->see('Title cannot be blank');
+    }
 }
