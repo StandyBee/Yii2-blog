@@ -65,6 +65,16 @@ class LoginForm extends Model
         return false;
     }
 
+    public function register()
+    {
+        $user = new User();
+        $user->username = $this->username;
+        $user->password = password_hash($this->password, PASSWORD_BCRYPT);
+        $user->save();
+
+        return $user;
+    }
+
     /**
      * Finds user by [[username]]
      *
