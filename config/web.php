@@ -46,9 +46,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                '/' => '/post',
-                '/post/index' => '/post/index',
-                '/about' => 'site/about',
+                '/' => '/post/index',
             ],
         ],
     ],
