@@ -8,7 +8,7 @@ use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\LoginForm;
+use app\models\AuthForm;
 
 class SiteController extends Controller
 {
@@ -61,35 +61,28 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
-
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->auth('login', 'login', '/');
     }
 
 
     public function actionRegister()
     {
+        return $this->auth('register', 'register', '/site/login');
+    }
+
+    private function auth($view, $method, $route)
+    {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->register()) {
-            return $this->redirect(Url::to('/site/login'));
+        $model = new AuthForm();
+        if ($model->load(Yii::$app->request->post()) && $model->{$method}()) {
+            return $this->redirect(Url::toRoute($route));
         }
 
         $model->password = '';
-        return $this->render('login', [
+        return $this->render($view, [
             'model' => $model,
         ]);
     }
