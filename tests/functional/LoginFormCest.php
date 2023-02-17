@@ -1,37 +1,41 @@
 <?php
 
+use app\fixtures\UserFixture;
+
 class LoginFormCest
 {
-    public function _before(\FunctionalTester $I)
+    public function _fixtures(): array
     {
-        $I->amOnRoute('site/login');
+        return [
+            'users' => [
+                'class' => UserFixture::class,
+                'dataFile' => codecept_data_dir('users.php'),
+            ],
+        ];
     }
 
     public function openLoginPage(\FunctionalTester $I)
     {
-        $I->see('Login', 'h1');
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
 
+        $I->amOnRoute('/post');
+
+        $I->see('Logout');
     }
 
-    // demonstrates `amLoggedInAs` method
-    public function internalLoginById(\FunctionalTester $I)
-    {
-        $I->amLoggedInAs(100);
-        $I->amOnPage('/');
-        $I->see('Logout (admin)');
-    }
-
-    // demonstrates `amLoggedInAs` method
     public function internalLoginByInstance(\FunctionalTester $I)
     {
-        $I->amLoggedInAs(\app\models\User::findByUsername('admin'));
-        $I->amOnPage('/');
-        $I->see('Logout (admin)');
+        $user = $I->grabFixture('users', 0);
+        $I->amLoggedInAs($user);
+        $I->amOnRoute('/post');
+        $I->see($user->username);
     }
 
     public function loginWithEmptyCredentials(\FunctionalTester $I)
     {
-        $I->submitForm('#login-form', []);
+        $I->amOnRoute('/site/login');
+        $I->submitForm('#auth-form', []);
         $I->expectTo('see validations errors');
         $I->see('Username cannot be blank.');
         $I->see('Password cannot be blank.');
@@ -39,7 +43,8 @@ class LoginFormCest
 
     public function loginWithWrongCredentials(\FunctionalTester $I)
     {
-        $I->submitForm('#login-form', [
+        $I->amOnRoute('/site/login');
+        $I->submitForm('#auth-form', [
             'AuthForm[username]' => 'admin',
             'AuthForm[password]' => 'wrong',
         ]);
@@ -49,11 +54,13 @@ class LoginFormCest
 
     public function loginSuccessfully(\FunctionalTester $I)
     {
-        $I->submitForm('#login-form', [
-            'AuthForm[username]' => 'admin',
-            'AuthForm[password]' => 'admin',
+        $I->amOnRoute('/site/login');
+        $I->submitForm('#auth-form', [
+            'AuthForm[username]' => 'ssd',
+            'AuthForm[password]' => 'ss',
         ]);
-        $I->see('Logout (admin)');
-        $I->dontSeeElement('form#login-form');              
+        $I->amOnRoute('/post');
+        $I->see('Create');
+        $I->dontSeeElement('form#auth-form');
     }
 }

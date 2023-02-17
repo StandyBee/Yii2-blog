@@ -3,6 +3,7 @@
 
 namespace functional;
 
+use app\fixtures\UserFixture;
 use app\models\Post;
 use app\fixtures\PostFixture;
 use \FunctionalTester;
@@ -17,6 +18,10 @@ class PostCest
             'class' => PostFixture::class,
             'dataFile' => codecept_data_dir('posts.php'),
         ],
+            'users' => [
+                'class' => UserFixture::class,
+                'dataFile' => codecept_data_dir('users.php'),
+            ]
         ];
     }
 
@@ -35,6 +40,9 @@ class PostCest
 
     public function createPostFromIndexPage(FunctionalTester $I): void
     {
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
+
         $I->amOnRoute('post/index');
 
         $I->click('Create Post');
@@ -53,13 +61,19 @@ class PostCest
 
     public function createPost(FunctionalTester $I): void
     {
+        $user = $I->grabFixture('users', 0);
+        $I->amLoggedInAs($user);
+
         $I->amOnRoute('post/create');
-
-        $I->submitForm('form', [
-            'Post[title]' => 'title',
-            'Post[content]' => 'content',
-        ]);
-
+        $I->see($user->username);
+        $I->fillField('Post[title]', 'title');
+        $I->fillField('Post[content]', 'content');
+        $I->click('Save');
+//        $I->submitForm('form', [
+//            'Post[title]' => 'title',
+//            'Post[content]' => 'content',
+//        ]);
+//
         $I->seeResponseCodeIsSuccessful();
 
         $I->seeRecord(Post::class, [
@@ -70,15 +84,19 @@ class PostCest
 
     public function updatePost(FunctionalTester $I): void
     {
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
 
         $postId = 20000;
         $post = $I->grabFixture('posts', $postId)->attributes;
 
         $I->amOnRoute('post/update', ['id' => $postId]);
 
-        $I->submitForm('form', [
-            'Post[title]' => 'updated title',
-        ]);
+//        $I->submitForm('form', [
+//            'Post[title]' => 'updated title',
+//        ]);
+        $I->fillField('Post[title]', 'updated title');
+        $I->click('Save');
 
         $I->seeResponseCodeIsSuccessful();
 
@@ -90,6 +108,8 @@ class PostCest
 
     public function visitUpdatePost(FunctionalTester $I): void
     {
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
 
         $postId = 20000;
 
@@ -105,6 +125,9 @@ class PostCest
 
     public function deletePost(FunctionalTester $I): void
     {
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
+
         $uri = Url::to([
             '/post/delete',
             'id' => 10000,
@@ -116,9 +139,14 @@ class PostCest
 
     public function createPostWithInvalidValues(FunctionalTester  $I): void
     {
+        $user = $I->grabFixture('users');
+        $I->amLoggedInAs($user);
+
         $I->amOnRoute('post/create');
 
-        $I->submitForm('form', []);
+//        $I->submitForm('form', []);
+        $I->fillField('Post[title]', '');
+        $I->click('Save');
 
         $I->see('Title cannot be blank');
     }
