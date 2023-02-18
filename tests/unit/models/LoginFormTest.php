@@ -35,20 +35,4 @@ class LoginFormTest extends \Codeception\Test\Unit
         verify(\Yii::$app->user->isGuest)->true();
         verify($this->model->errors)->arrayHasKey('password');
     }
-
-    /**
-     * TODO: разобраться
-     */
-//    public function testLoginCorrect()
-//    {
-//        $this->model = new AuthForm([
-//            'username' => 'admin',
-//            'password' => 'admin',
-//        ]);
-//dd($this->model->validate());
-//        verify($this->model->login())->true();
-//        verify(\Yii::$app->user->isGuest)->false();
-//        verify($this->model->errors)->arrayHasNotKey('password');
-//    }
-
 }
